@@ -36,10 +36,6 @@
 
 ### 1️⃣ Klonowanie repozytorium
 
-```sh
-git clone https://github.com/TwojRepozytorium/AI-Sign-Recognizer.git
-cd AI-Sign-Recognizer
-```
 
 ### 2️⃣ Instalacja zależności
 
