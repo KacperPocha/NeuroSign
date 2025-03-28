@@ -99,7 +99,67 @@
 
 6. **Rozszerzalność**  
    - Modułowa architektura umożliwiająca dodawanie nowych funkcji.  
-   - Możliwość dodania kolejnych modeli AI bez modyfikacji całej aplikacji.  
+   - Możliwość dodania kolejnych modeli AI bez modyfikacji całej aplikacji.
+  
+**Testy integracyjne dla NeuroSign**  
+
+ **1. Test integracji: Rozpoznawanie znaków z kamery**
+📌 **Cel:** Sprawdzenie, czy obraz z kamery jest poprawnie przetwarzany przez model AI i OCR oraz wyświetlany w interfejsie użytkownika.  
+🛠 **Moduły:**  
+- Frontend (React.js / React Native)  
+- TensorFlow.js (model AI)  
+
+✅ **Kroki testowe:**  
+1. Otwórz aplikację i przyznaj dostęp do kamery.  
+2. Skieruj kamerę na znak drogowy lub tablicę rejestracyjną.  
+3. Sprawdź, czy obraz został przechwycony poprawnie.  
+4. Upewnij się, że AI zwróciło prawidłowy typ znaku.  
+5. Sprawdź, czy OCR poprawnie rozpoznał tekst na znaku.  
+6. Sprawdź, czy wynik został wyświetlony w UI.  
+
+🛑 **Możliwe błędy:**  
+- Model AI nie rozpoznaje znaku poprawnie.  
+- OCR nie odczytuje tekstu lub zwraca błędne znaki.  
+- Brak obrazu z kamery w UI.  
+
+---
+
+**2. Test integracji: Zapisywanie historii rozpoznań (frontend + backend + baza danych)**  
+📌 **Cel:** Sprawdzenie, czy dane o rozpoznanych znakach są poprawnie zapisywane i pobierane z bazy.  
+🛠 **Moduły:**  
+- Frontend (React.js / React Native)  
+- Backend (Node.js + Express.js)  
+- Baza danych (Firebase / Supabase)  
+
+✅ **Kroki testowe:**  
+1. Przeprowadź detekcję znaku w aplikacji.  
+2. Sprawdź, czy aplikacja wysyła żądanie POST do API backendu.  
+3. Sprawdź, czy backend poprawnie zapisuje dane w bazie.  
+4. Odśwież aplikację i sprawdź, czy historia detekcji została poprawnie pobrana.  
+
+🛑 **Możliwe błędy:**  
+- Dane nie zapisują się w bazie.  
+- Historia nie jest pobierana z backendu.  
+- Backend zwraca błędy (np. 500 Internal Server Error).  
+
+
+**3. Test integracji: Pobieranie i analiza statystyk (backend + frontend + baza danych)**  
+📌 **Cel:** Sprawdzenie, czy aplikacja poprawnie pobiera i wyświetla statystyki dotyczące rozpoznanych znaków.  
+🛠 **Moduły:**  
+- Frontend (dashboard statystyk)  
+- Backend (API statystyk)  
+- Baza danych
+
+✅ **Kroki testowe:**  
+1. Otwórz aplikację i przejdź do sekcji „Statystyki”.  
+2. Sprawdź, czy aplikacja wysyła żądanie GET do API backendu.  
+3. Upewnij się, że backend poprawnie agreguje dane z bazy.  
+4. Sprawdź, czy frontend poprawnie wyświetla statystyki (np. liczba wykryć danego znaku).  
+
+🛑 **Możliwe błędy:**  
+- Baza danych nie zwraca poprawnych danych.  
+- Frontend nie aktualizuje statystyk w czasie rzeczywistym.  
+- API zwraca błędy (np. 404 Not Found).  
 
 
 
