@@ -57,6 +57,52 @@
 3️⃣ AI klasyfikuje znak lub OCR odczytuje tekst.\
 4️⃣ Wynik jest wyświetlany na ekranie i może być zapisany w bazie.
 
+**Wymagania funkcjonalne**  
+
+1. **Rozpoznawanie znaków z obrazu**  
+   - Wykorzystanie **TensorFlow.js** do klasyfikacji znaków.  
+
+2. **Obsługa aplikacji webowej i mobilnej**  
+   - Wersja **webowa** działająca w przeglądarce.  
+   - Wersja **mobilna** dla Androida i iOS.  
+
+3. **Interfejs użytkownika**  
+   - Przejrzysty UI.    
+
+4. **Historia rozpoznanych znaków**  
+   - Zapis historii detekcji w bazie danych. 
+   - Możliwość przeglądania historii.
+
+5. **Autoryzacja i zarządzanie użytkownikami**  
+   - Możliwość logowania i rejestracji użytkowników.
+   - 
+
+**Wymagania niefunkcjonalne**  
+
+1. **Wydajność**  
+   - Szybkie przetwarzanie obrazu w czasie rzeczywistym. 
+   - Optymalizacja kodu i modeli AI do płynnej pracy na urządzeniach mobilnych.  
+
+2. **Skalowalność**  
+   - Backend z możliwością rozszerzenia.   
+
+3. **Bezpieczeństwo**  
+   - Bezpieczna autoryzacja użytkowników.  
+   - Zabezpieczenie przed nieautoryzowanym dostępem do historii detekcji.  
+
+4. **Dostępność**  
+   - Aplikacja powinna działać na różnych urządzeniach (telefony, tablety, komputery).  
+   - Obsługa różnych systemów operacyjnych (Android, iOS, Windows, macOS).  
+
+5. **Łatwość użytkowania**  
+   - Intuicyjny interfejs, prosty onboarding dla nowych użytkowników.   
+
+6. **Rozszerzalność**  
+   - Modułowa architektura umożliwiająca dodawanie nowych funkcji.  
+   - Możliwość dodania kolejnych modeli AI bez modyfikacji całej aplikacji.  
+
+
+
 ## 🎯 Przyszłe usprawnienia
 
 - 🚀 Wsparcie dla większej liczby znaków
