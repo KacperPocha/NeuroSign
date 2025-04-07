@@ -134,3 +134,11 @@ traffic_model = Sequential([
 ])
 
 
+traffic_model.compile(
+    optimizer=Adam(learning_rate=0.001),
+    loss='sparse_categorical_crossentropy',
+    metrics=['accuracy']
+)
+
+steps_per_epoch = np.ceil(train_dataset.samples / train_dataset.batch_size).astype(int)
+val_steps = np.ceil(test_dataset.samples / test_dataset.batch_size).astype(int)
