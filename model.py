@@ -142,3 +142,15 @@ traffic_model.compile(
 
 steps_per_epoch = np.ceil(train_dataset.samples / train_dataset.batch_size).astype(int)
 val_steps = np.ceil(test_dataset.samples / test_dataset.batch_size).astype(int)
+
+
+training_history = traffic_model.fit(
+    train_dataset,
+    steps_per_epoch=steps_per_epoch,
+    epochs=10,
+    validation_data=test_dataset,
+    validation_steps=val_steps,
+    verbose=1
+)
+
+traffic_model.save('ReadyModel.h5')
