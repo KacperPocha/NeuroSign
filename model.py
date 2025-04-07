@@ -121,3 +121,16 @@ label_descriptions = {
     'D-6': 'Przystanek tramwajowy',
     'D-7': 'Stacja rowerów publicznych'
 }
+
+traffic_model = Sequential([
+    Conv2D(32, (3, 3), activation='relu', input_shape=(IMAGE_HEIGHT, IMAGE_WIDTH, 3)),
+    MaxPooling2D((2, 2)),
+    Conv2D(64, (3, 3), activation='relu'),
+    MaxPooling2D((2, 2)),
+    Flatten(),
+    Dense(128, activation='relu'), 
+    Dropout(0.5),
+    Dense(NUM_CLASSES, activation='softmax')
+])
+
+
