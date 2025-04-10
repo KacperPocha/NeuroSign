@@ -108,7 +108,6 @@ class_names = {
     'G-3': 'Krzyż św. Andrzeja przed przejazdem kolejowym jednotorowym'
 }
 
-# Przygotowanie generatora danych (np. do uczenia modelu)
 train_image_generator = ImageDataGenerator(rescale=1. / 255)
 train_data_gen = train_image_generator.flow_from_directory(
     batch_size=100, 
@@ -117,13 +116,11 @@ train_data_gen = train_image_generator.flow_from_directory(
     shuffle=True,
     target_size=(IMG_HEIGHT, IMG_WIDTH)  
 )
-# Ładowanie wytrenowanego modelu
+
 model = load_model('ReadyModel.h5')  
 
 def fetch_and_preprocess_image(url, img_height, img_width):
-    """
-    Pobieranie obrazu z URL i wstępne przetwarzanie.
-    """
+
     try:
         response = requests.get(url, stream=True) 
         response.raise_for_status() 
@@ -140,9 +137,7 @@ def fetch_and_preprocess_image(url, img_height, img_width):
         return None, None  
 
 def predict_image(model, image_arr, class_indices, class_names):
-    """
-    Predykcja klasy dla obrazu.
-    """
+  
     try:
         result = model.predict(image_arr, verbose=0) 
         predicted_index = np.argmax(result)  
@@ -155,9 +150,7 @@ def predict_image(model, image_arr, class_indices, class_names):
 
 def testing_v2(model, dict_of_urls, class_names, img_height=IMG_HEIGHT, img_width=IMG_WIDTH):
  
-    """
-    Testowanie modelu na obrazach z URL-ów.
-    """
+  
     for actual_code, url in dict_of_urls.items(): 
         print(f"Przetwarzam znak: {actual_code} z URL: {url}")  
         
