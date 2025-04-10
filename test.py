@@ -10,7 +10,9 @@ IMG_HEIGHT = 32
 IMG_WIDTH = 32   
 
 dict_of_urls = {
-    'znak': 'https://www.prawo-jazdy-360.pl/image/znaki-drogowe/D-6-przejscie-dla-pieszych.webp' 
+    'znak': 'https://www.prawo-jazdy-360.pl/image/znaki-drogowe/D-6-przejscie-dla-pieszych.webp',
+    'D-1' : 'https://www.prawo-jazdy-360.pl/image/znaki-drogowe/D-1-droga-z-pierwszenstwem.webp',
+    'D-3' : 'https://www.prawo-jazdy-360.pl/image/znaki-drogowe/D-3-droga-jednokierunkowa.webp'
 }
 
 class_names = {
