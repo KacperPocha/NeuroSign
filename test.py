@@ -107,3 +107,78 @@ class_names = {
     'G-1a': 'Słupek wskaźnikowy z trzema kreskami umieszczany po prawej stronie jezdni',
     'G-3': 'Krzyż św. Andrzeja przed przejazdem kolejowym jednotorowym'
 }
+
+# Przygotowanie generatora danych (np. do uczenia modelu)
+train_image_generator = ImageDataGenerator(rescale=1. / 255)
+train_data_gen = train_image_generator.flow_from_directory(
+    batch_size=100, 
+    directory='./data/data/train',  
+    class_mode='sparse', 
+    shuffle=True,
+    target_size=(IMG_HEIGHT, IMG_WIDTH)  
+)
+# Ładowanie wytrenowanego modelu
+model = load_model('ReadyModel.h5')  
+
+def fetch_and_preprocess_image(url, img_height, img_width):
+    """
+    Pobieranie obrazu z URL i wstępne przetwarzanie.
+    """
+    try:
+        response = requests.get(url, stream=True) 
+        response.raise_for_status() 
+        image = Image.open(response.raw)  
+        image = image.resize((img_height, img_width))  
+        image_arr = np.array(image.convert('RGB')) 
+        image_arr = image_arr / 255.0 
+        return image_arr.reshape(1, img_height, img_width, 3), image 
+    except requests.exceptions.RequestException as e:
+        print(f"Błąd pobierania obrazu z URL {url}: {e}")  
+        return None, None 
+    except Exception as e:
+        print(f"Błąd przetwarzania obrazu z URL {url}: {e}")  
+        return None, None  
+
+def predict_image(model, image_arr, class_indices, class_names):
+    """
+    Predykcja klasy dla obrazu.
+    """
+    try:
+        result = model.predict(image_arr, verbose=0) 
+        predicted_index = np.argmax(result)  
+        predicted_code = list(class_indices.keys())[predicted_index] 
+        predicted_description = class_names.get(predicted_code, "Nieznany znak")  
+        return predicted_code, predicted_description 
+    except Exception as e:
+        print(f"Błąd podczas przewidywania: {e}")  
+        return None, "Błąd przewidywania"  
+
+def testing_v2(model, dict_of_urls, class_names, img_height=IMG_HEIGHT, img_width=IMG_WIDTH):
+ 
+    """
+    Testowanie modelu na obrazach z URL-ów.
+    """
+    for actual_code, url in dict_of_urls.items(): 
+        print(f"Przetwarzam znak: {actual_code} z URL: {url}")  
+        
+      
+        image_arr, image = fetch_and_preprocess_image(url, img_height, img_width)
+        
+        if image_arr is not None: 
+     
+            predicted_code, predicted_description = predict_image(
+                model, image_arr, train_data_gen.class_indices, class_names
+            )
+        
+ 
+            actual_description = class_names.get(actual_code, "Nieznany znak")
+            
+            plt.imshow(image)  
+            plt.title(f'Rzeczywisty znak: "{actual_description}". Model przewidział: "{predicted_description}".') 
+            plt.axis('off')  
+            plt.show()  
+        else:
+            print(f"Nie udało się pobrać lub przetworzyć obrazu z URL: {url}")  
+
+
+testing_v2(model, dict_of_urls, class_names)  
