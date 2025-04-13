@@ -1,22 +1,25 @@
-import numpy as np
-import requests
-from PIL import Image
-import matplotlib.pyplot as plt
-from tensorflow.keras.models import load_model
-from tensorflow.keras.preprocessing.image import ImageDataGenerator
+# Importowanie bibliotek potrzebnych do działania programu
+import numpy as np  # Obsługa tablic i operacji numerycznych
+import requests  # Do pobierania obrazów z internetu
+from PIL import Image  # Do otwierania i przetwarzania obrazów
+import matplotlib.pyplot as plt  # Do wyświetlania obrazów
+from tensorflow.keras.models import load_model  # Do ładowania wytrenowanego modelu
+from tensorflow.keras.preprocessing.image import ImageDataGenerator  # Do przetwarzania i augmentacji obrazów
 
-
+# Ustawienie wymiarów wejściowych obrazów (wysokość i szerokość)
 IMG_HEIGHT = 32  
 IMG_WIDTH = 32   
 
+# Słownik z URL-ami do testowych obrazów znaków drogowych
 dict_of_urls = {
     'znak': 'https://www.prawo-jazdy-360.pl/image/znaki-drogowe/D-6-przejscie-dla-pieszych.webp',
     'D-1' : 'https://www.prawo-jazdy-360.pl/image/znaki-drogowe/D-1-droga-z-pierwszenstwem.webp',
     'D-3' : 'https://www.prawo-jazdy-360.pl/image/znaki-drogowe/D-3-droga-jednokierunkowa.webp'
 }
 
+# Słownik tłumaczący kody znaków na ich pełne opisy (etykiety klas)
 class_names = {
-     'A-1': 'Niebezpieczny zakręt w prawo',
+    'A-1': 'Niebezpieczny zakręt w prawo',
     'A-11': 'Nierówna droga',
     'A-11a': 'Próg zwalniający',
     'A-12a': 'Zwężenie jezdni - dwustronne',
@@ -110,70 +113,69 @@ class_names = {
     'G-3': 'Krzyż św. Andrzeja przed przejazdem kolejowym jednotorowym'
 }
 
+# Tworzenie generatora obrazów treningowych z normalizacją pikseli (0–1)
 train_image_generator = ImageDataGenerator(rescale=1. / 255)
+
+# Załadowanie obrazów treningowych z folderu, przeskalowanie i przygotowanie etykiet
 train_data_gen = train_image_generator.flow_from_directory(
-    batch_size=100, 
-    directory='./data/data/train',  
-    class_mode='sparse', 
-    shuffle=True,
-    target_size=(IMG_HEIGHT, IMG_WIDTH)  
+    batch_size=100,  # Liczba obrazów przetwarzana jednorazowo
+    directory='./data/data/train',  # Ścieżka do folderu z danymi treningowymi
+    class_mode='sparse',  # Etykiety jako liczby (indeksy klas)
+    shuffle=True,  # Mieszanie danych
+    target_size=(IMG_HEIGHT, IMG_WIDTH)  # Skalowanie obrazów do zadanych wymiarów
 )
 
+# Załadowanie wytrenowanego modelu Keras z pliku
 model = load_model('ReadyModel.h5')  
 
+# Funkcja do pobierania i przetwarzania obrazu z internetu
 def fetch_and_preprocess_image(url, img_height, img_width):
-
     try:
-        response = requests.get(url, stream=True) 
-        response.raise_for_status() 
-        image = Image.open(response.raw)  
-        image = image.resize((img_height, img_width))  
-        image_arr = np.array(image.convert('RGB')) 
-        image_arr = image_arr / 255.0 
-        return image_arr.reshape(1, img_height, img_width, 3), image 
+        response = requests.get(url, stream=True)  # Pobranie obrazu jako strumień danych
+        response.raise_for_status()  # Sprawdzenie, czy pobranie się udało
+        image = Image.open(response.raw)  # Otworzenie obrazu z odpowiedzi HTTP
+        image = image.resize((img_height, img_width))  # Zmiana rozmiaru obrazu do wymaganego
+        image_arr = np.array(image.convert('RGB'))  # Konwersja do RGB i zapis do tablicy numpy
+        image_arr = image_arr / 255.0  # Normalizacja pikseli do zakresu 0–1
+        return image_arr.reshape(1, img_height, img_width, 3), image  # Zwrócenie tablicy obrazu oraz oryginalnego obrazu
     except requests.exceptions.RequestException as e:
-        print(f"Błąd pobierania obrazu z URL {url}: {e}")  
+        print(f"Błąd pobierania obrazu z URL {url}: {e}")  # Obsługa błędów pobierania
         return None, None 
     except Exception as e:
-        print(f"Błąd przetwarzania obrazu z URL {url}: {e}")  
+        print(f"Błąd przetwarzania obrazu z URL {url}: {e}")  # Obsługa błędów konwersji
         return None, None  
 
+# Funkcja do wykonania predykcji na pojedynczym obrazie
 def predict_image(model, image_arr, class_indices, class_names):
-  
     try:
-        result = model.predict(image_arr, verbose=0) 
-        predicted_index = np.argmax(result)  
-        predicted_code = list(class_indices.keys())[predicted_index] 
-        predicted_description = class_names.get(predicted_code, "Nieznany znak")  
-        return predicted_code, predicted_description 
+        result = model.predict(image_arr, verbose=0)  # Przewidywanie klasy obrazu
+        predicted_index = np.argmax(result)  # Indeks najwyższego prawdopodobieństwa
+        predicted_code = list(class_indices.keys())[predicted_index]  # Znalezienie kodu klasy wg indeksu
+        predicted_description = class_names.get(predicted_code, "Nieznany znak")  # Tłumaczenie kodu na opis
+        return predicted_code, predicted_description  # Zwrócenie kodu i opisu
     except Exception as e:
-        print(f"Błąd podczas przewidywania: {e}")  
+        print(f"Błąd podczas przewidywania: {e}")  # Obsługa błędów predykcji
         return None, "Błąd przewidywania"  
 
+# Funkcja do testowania modelu na obrazach z internetu
 def testing_v2(model, dict_of_urls, class_names, img_height=IMG_HEIGHT, img_width=IMG_WIDTH):
- 
-  
-    for actual_code, url in dict_of_urls.items(): 
-        print(f"Przetwarzam znak: {actual_code} z URL: {url}")  
+    for actual_code, url in dict_of_urls.items():  # Iteracja przez każdy znak i jego URL
+        print(f"Przetwarzam znak: {actual_code} z URL: {url}")  # Informacja o przetwarzanym znaku
         
-      
-        image_arr, image = fetch_and_preprocess_image(url, img_height, img_width)
+        image_arr, image = fetch_and_preprocess_image(url, img_height, img_width)  # Pobranie i przetworzenie obrazu
         
-        if image_arr is not None: 
-     
+        if image_arr is not None:  # Sprawdzenie, czy pobranie się udało
             predicted_code, predicted_description = predict_image(
-                model, image_arr, train_data_gen.class_indices, class_names
+                model, image_arr, train_data_gen.class_indices, class_names  # Predykcja na podstawie modelu
             )
-        
- 
-            actual_description = class_names.get(actual_code, "Nieznany znak")
+            actual_description = class_names.get(actual_code, "Nieznany znak")  # Tłumaczenie kodu na opis
             
-            plt.imshow(image)  
-            plt.title(f'Rzeczywisty znak: "{actual_description}". Model przewidział: "{predicted_description}".') 
-            plt.axis('off')  
-            plt.show()  
+            plt.imshow(image)  # Wyświetlenie pobranego obrazu
+            plt.title(f'Rzeczywisty znak: "{actual_description}". Model przewidział: "{predicted_description}".')  # Tytuł z informacjami
+            plt.axis('off')  # Wyłączenie osi
+            plt.show()  # Pokazanie wykresu
         else:
-            print(f"Nie udało się pobrać lub przetworzyć obrazu z URL: {url}")  
+            print(f"Nie udało się pobrać lub przetworzyć obrazu z URL: {url}")  # Komunikat o błędzie
 
-
+# Wywołanie funkcji testującej – uruchomienie całego procesu
 testing_v2(model, dict_of_urls, class_names)  

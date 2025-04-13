@@ -10,37 +10,37 @@ from tensorflow.keras.models import Sequential, load_model
 from tensorflow.keras.layers import Dense, Flatten, Conv2D, MaxPooling2D, Dropout  
 from tensorflow.keras.optimizers import Adam  
 
-dataset_path = './data/data'  
+dataset_path = './data/data'  # Ścieżka do folderu zawierającego dane (obrazy znaków drogowych)
 
-train_folder = 'train'  
-test_folder = 'test'  
+train_folder = 'train'  # Nazwa folderu treningowego
+test_folder = 'test'    # Nazwa folderu testowego
 
-IMAGE_HEIGHT = 32  
-IMAGE_WIDTH = 32  
+IMAGE_HEIGHT = 32  # Wysokość obrazu po przeskalowaniu
+IMAGE_WIDTH = 32   # Szerokość obrazu po przeskalowaniu
 
-train_gen = ImageDataGenerator(rescale=1.0 / 255)  
-test_gen = ImageDataGenerator(rescale=1.0 / 255)  
+train_gen = ImageDataGenerator(rescale=1.0 / 255)  # Generator do wczytywania i normalizacji danych treningowych
+test_gen = ImageDataGenerator(rescale=1.0 / 255)   # Generator do wczytywania i normalizacji danych testowych
 
 train_dataset = train_gen.flow_from_directory(
-    batch_size=100,  
-    directory=os.path.join(dataset_path, train_folder),  
-    class_mode='sparse',  
-    shuffle=True,  
-    target_size=(IMAGE_HEIGHT, IMAGE_WIDTH)  
+    batch_size=100,  # Liczba obrazów w jednej paczce (batchu)
+    directory=os.path.join(dataset_path, train_folder),  # Pełna ścieżka do folderu treningowego
+    class_mode='sparse',  # Klasy zapisane jako liczby całkowite (etykiety)
+    shuffle=True,  # Przypadkowe mieszanie danych
+    target_size=(IMAGE_HEIGHT, IMAGE_WIDTH)  # Skalowanie obrazów do zadanych wymiarów
 )
 
 test_dataset = test_gen.flow_from_directory(
-    batch_size=100,  
-    directory=os.path.join(dataset_path, test_folder),  
-    class_mode='sparse',  
-    shuffle=False,  
-    target_size=(IMAGE_HEIGHT, IMAGE_WIDTH)  
+    batch_size=100,  # Liczba obrazów w jednej paczce (batchu)
+    directory=os.path.join(dataset_path, test_folder),  # Pełna ścieżka do folderu testowego
+    class_mode='sparse',  # Klasy jako liczby całkowite
+    shuffle=False,  # Nie mieszaj danych testowych
+    target_size=(IMAGE_HEIGHT, IMAGE_WIDTH)  # Skalowanie obrazów do zadanych wymiarów
 )
 
-NUM_CLASSES = train_dataset.num_classes  
-print(f'Liczba klas: {NUM_CLASSES}')  
+NUM_CLASSES = train_dataset.num_classes  # Liczba klas (unikalnych znaków drogowych)
+print(f'Liczba klas: {NUM_CLASSES}')  # Wyświetlenie liczby klas
 
-
+# Słownik z opisami etykiet (kod znaku => opis po polsku)
 label_descriptions = {
     'A-1': 'Niebezpieczny zakręt w prawo',
     'A-11': 'Nierówna droga',
@@ -122,51 +122,56 @@ label_descriptions = {
     'D-7': 'Stacja rowerów publicznych'
 }
 
+# Definicja modelu sieci neuronowej do rozpoznawania znaków drogowych
 traffic_model = Sequential([
-    Conv2D(32, (3, 3), activation='relu', input_shape=(IMAGE_HEIGHT, IMAGE_WIDTH, 3)),
-    MaxPooling2D((2, 2)),
-    Conv2D(64, (3, 3), activation='relu'),
-    MaxPooling2D((2, 2)),
-    Flatten(),
-    Dense(128, activation='relu'), 
-    Dropout(0.5),
-    Dense(NUM_CLASSES, activation='softmax')
+    Conv2D(32, (3, 3), activation='relu', input_shape=(IMAGE_HEIGHT, IMAGE_WIDTH, 3)),  # Warstwa konwolucyjna z 32 filtrami 3x3
+    MaxPooling2D((2, 2)),  # Warstwa maksymalnego próbkowania (redukcja wymiaru)
+    Conv2D(64, (3, 3), activation='relu'),  # Kolejna warstwa konwolucyjna z 64 filtrami
+    MaxPooling2D((2, 2)),  # Kolejna warstwa próbkowania
+    Flatten(),  # Spłaszczenie danych z 2D do 1D
+    Dense(128, activation='relu'),  # Warstwa gęsta z 128 neuronami
+    Dropout(0.5),  # Warstwa odrzucająca 50% neuronów losowo (zapobiega przeuczeniu)
+    Dense(NUM_CLASSES, activation='softmax')  # Warstwa wyjściowa – klasyfikacja do jednej z klas
 ])
 
-
+# Kompilacja modelu – wybór optymalizatora, funkcji straty i metryk
 traffic_model.compile(
-    optimizer=Adam(learning_rate=0.001),
-    loss='sparse_categorical_crossentropy',
-    metrics=['accuracy']
+    optimizer=Adam(learning_rate=0.001),  # Optymalizator Adam z określonym learning rate
+    loss='sparse_categorical_crossentropy',  # Funkcja straty odpowiednia dla etykiet jako liczby całkowite
+    metrics=['accuracy']  # Metryka: dokładność
 )
 
+# Obliczenie liczby kroków (batchów) w jednej epoce dla zbioru treningowego i walidacyjnego
 steps_per_epoch = np.ceil(train_dataset.samples / train_dataset.batch_size).astype(int)
 val_steps = np.ceil(test_dataset.samples / test_dataset.batch_size).astype(int)
 
 
+# Trenowanie modelu
 training_history = traffic_model.fit(
-    train_dataset,
-    steps_per_epoch=steps_per_epoch,
-    epochs=10,
-    validation_data=test_dataset,
-    validation_steps=val_steps,
-    verbose=1
+    train_dataset,  # Dane treningowe
+    steps_per_epoch=steps_per_epoch,  # Liczba kroków w epoce
+    epochs=10,  # Liczba epok treningowych
+    validation_data=test_dataset,  # Dane walidacyjne
+    validation_steps=val_steps,  # Liczba kroków walidacyjnych
+    verbose=1  # Wypisywanie postępu uczenia
 )
 
-traffic_model.save('ReadyModel.h5')
+traffic_model.save('ReadyModel.h5')  # Zapis wytrenowanego modelu do pliku .h5
 
 
+
+# Funkcja do rysowania wykresów dokładności i straty podczas uczenia
 def plot_metrics(history):
-    training_acc = history.history['accuracy']
-    validation_acc = history.history['val_accuracy']
-    training_loss = history.history['loss']
-    validation_loss = history.history['val_loss']
+    training_acc = history.history['accuracy']  # Dokładność treningowa w każdej epoce
+    validation_acc = history.history['val_accuracy']  # Dokładność walidacyjna
+    training_loss = history.history['loss']  # Strata treningowa
+    validation_loss = history.history['val_loss']  # Strata walidacyjna
 
-    epochs_range = range(1, len(training_acc) + 1)
+    epochs_range = range(1, len(training_acc) + 1)  # Zakres epok
 
-    plt.figure(figsize=(14, 6))  
+    plt.figure(figsize=(14, 6))  # Rozmiar wykresu
 
-   
+    # Wykres dokładności
     plt.subplot(1, 2, 1)
     plt.plot(epochs_range, training_acc, marker='o', linestyle='-', color='green', label='Train Accuracy')
     plt.plot(epochs_range, validation_acc, marker='o', linestyle='--', color='orange', label='Validation Accuracy')
@@ -176,9 +181,9 @@ def plot_metrics(history):
     plt.xticks(fontsize=10)
     plt.yticks(fontsize=10)
     plt.legend(fontsize=10)
-    plt.grid(True, linestyle='--', alpha=0.6) 
+    plt.grid(True, linestyle='--', alpha=0.6)
 
-  
+    # Wykres straty
     plt.subplot(1, 2, 2)
     plt.plot(epochs_range, training_loss, marker='s', linestyle='-', color='blue', label='Train Loss')
     plt.plot(epochs_range, validation_loss, marker='s', linestyle='--', color='red', label='Validation Loss')
@@ -190,7 +195,8 @@ def plot_metrics(history):
     plt.legend(fontsize=10)
     plt.grid(True, linestyle='--', alpha=0.6)
 
-    plt.tight_layout() 
-    plt.show()
+    plt.tight_layout()  # Automatyczne dopasowanie elementów na wykresie
+    plt.show()  # Wyświetlenie wykresów
 
-plot_metrics(training_history)
+
+plot_metrics(training_history)  # Wywołanie funkcji rysującej wykresy dla historii uczenia
