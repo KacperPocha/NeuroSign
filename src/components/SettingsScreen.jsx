@@ -1,32 +1,35 @@
-import React, { useState } from 'react';
-import '../styles/SettingsScreen.module.css'; // Assuming you have a CSS file for styling
+// src/components/SettingsScreen.jsx
+import React, { useContext } from 'react';
+import styles from '../styles/SettingsScreen.module.css';
+import { ThemeContext } from '../context/ThemeContext';
 
-function Settings() {
-  const [autoSave, setAutoSave] = useState(true);
-  const [darkMode, setDarkMode] = useState(false);
+const SettingsScreen = () => {
+  const { darkMode, setDarkMode } = useContext(ThemeContext);
+
+  const handleDarkModeToggle = (e) => {
+    setDarkMode(e.target.checked);
+  };
 
   return (
-    <div className="settings">
-      <h2>Ustawienia aplikacji</h2>
-      <label>
+    <div className={styles.settingsContainer}>
+      <h2 className={styles.heading}>Ustawienia</h2>
+
+      <div className={styles.settingItem}>
+        <label htmlFor="darkModeToggle" className={styles.settingLabel}>
+          Tryb ciemny
+        </label>
         <input
-          type="checkbox"
-          checked={autoSave}
-          onChange={() => setAutoSave(!autoSave)}
-        />
-        Automatyczne zapisywanie wyników
-      </label>
-      <br />
-      <label>
-        <input
+          id="darkModeToggle"
           type="checkbox"
           checked={darkMode}
-          onChange={() => setDarkMode(!darkMode)}
+          onChange={handleDarkModeToggle}
+          className={styles.toggleInput}
         />
-        Tryb ciemny
-      </label>
+      </div>
+
+      {/* Tu możesz dodać kolejne ustawienia */}
     </div>
   );
-}
+};
 
-export default Settings;
+export default SettingsScreen;
