@@ -17,7 +17,7 @@
 
 ### Frontend:
 
-- **React.js (Next.js)** – dla wersji webowej 🌐
+- **React.js** – dla wersji webowej 🌐
 - **React Native (Expo)** – dla wersji mobilnej 📱
 - **Tailwind CSS / ShadCN** – UI i stylizacja 🎨
 
