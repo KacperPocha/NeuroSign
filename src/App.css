@@ -7,6 +7,21 @@ body {
   color: #2c3e50;
 }
 
+/* body.dark-mode {
+  background-color: #121212;
+  color: #ffffff;
+} */
+
+body.dark-mode .app-container {
+  background-color: #121212;
+  color: white;
+}
+
+
+body.dark-mode a {
+  color: #90caf9;
+}
+
 .app-container {
   display: flex;
   flex-direction: column;
