@@ -1,75 +1,76 @@
-// src/components/FileUploadScreen.jsx
-import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import * as tf from '@tensorflow/tfjs';
-import styles from '../styles/FileUploadScreen.module.css';
+// src/__tests__/FileUploadScreen.test.jsx
+import React from 'react';
+import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import FileUploadScreen from '../components/FileUploadScreen';
+import { MemoryRouter, useNavigate } from 'react-router-dom';
 
-const FileUploadScreen = () => {
-  const [loading, setLoading] = useState(false);
-  const [preview, setPreview] = useState(null);
-  const navigate = useNavigate();
-
-  const handleFileUpload = async (e) => {
-    const file = e.target.files[0];
-    if (!file) return;
-
-    setLoading(true);
-    setPreview(URL.createObjectURL(file));
-
-    try {
-      const model = await tf.loadLayersModel('/model/model.json');
-      const img = new Image();
-      const reader = new FileReader();
-
-      reader.onload = () => {
-        img.src = reader.result;
-        img.onload = () => {
-          const tensor = tf.browser
-            .fromPixels(img)
-            .resizeNearestNeighbor([224, 224])
-            .toFloat()
-            .expandDims();
-
-          const prediction = model.predict(tensor);
-          prediction.array().then((result) => {
-            const recognitionData = {
-              type: 'Znak drogowy',
-              description: 'STOP',
-              value: 'STOP',
-              confidence: 0.97,
-              timestamp: new Date().toISOString()
-            };
-
-            navigate('/result', {
-              state: {
-                photo: URL.createObjectURL(file),
-                recognitionData
-              }
-            });
-          });
-        };
-      };
-
-      reader.readAsDataURL(file);
-    } catch (err) {
-      console.error('Błąd podczas wczytywania modelu lub przetwarzania obrazu:', err);
-      setLoading(false);
-    }
+// Mockuj navigate
+jest.mock('react-router-dom', () => {
+  const actual = jest.requireActual('react-router-dom');
+  return {
+    ...actual,
+    useNavigate: jest.fn(),
   };
+});
 
-  return (
-    <div className={styles.uploadContainer}>
-      <h2 className={styles.heading}>Wgraj obraz do rozpoznania</h2>
-      <input
-        type="file"
-        accept="image/jpeg,image/png"
-        onChange={handleFileUpload}
-        className={styles.fileInput}
-      />
-      {preview && <img src={preview} alt="Podgląd" className={styles.preview} />}
-      {loading && <p className={styles.loading}>Rozpoznawanie znaku...</p>}
-    </div>
-  );
-};
+// Mock modelu TensorFlow.js
+jest.mock('@tensorflow/tfjs', () => ({
+  loadLayersModel: jest.fn().mockResolvedValue({
+    predict: jest.fn().mockReturnValue({
+      array: () => Promise.resolve([[0.1, 0.9]]),
+    }),
+  }),
+}));
 
-export default FileUploadScreen;
+describe('FileUploadScreen', () => {
+  const navigateMock = jest.fn();
+
+  beforeEach(() => {
+    useNavigate.mockReturnValue(navigateMock);
+  });
+
+  test('renderuje nagłówek i przycisk', () => {
+    render(
+      <MemoryRouter>
+        <FileUploadScreen />
+      </MemoryRouter>
+    );
+
+    expect(screen.getByText(/Wgraj obraz do rozpoznania/i)).toBeInTheDocument();
+    expect(screen.getByLabelText(/Wybierz obraz/i)).toBeInTheDocument();
+  });
+
+  test('pokazuje podgląd obrazu i tekst ładowania', async () => {
+    const file = new File(['(⌐□_□)'], 'image.png', { type: 'image/png' });
+
+    render(
+      <MemoryRouter>
+        <FileUploadScreen />
+      </MemoryRouter>
+    );
+
+    const input = screen.getByLabelText(/Wybierz obraz/i);
+    fireEvent.change(input, { target: { files: [file] } });
+
+    await waitFor(() => {
+      expect(screen.getByText(/Rozpoznawanie znaku/i)).toBeInTheDocument();
+    });
+  });
+
+  test('nawiguje do result po rozpoznaniu', async () => {
+    const file = new File(['data'], 'image.jpg', { type: 'image/jpeg' });
+
+    render(
+      <MemoryRouter>
+        <FileUploadScreen />
+      </MemoryRouter>
+    );
+
+    const input = screen.getByLabelText(/Wybierz obraz/i);
+    fireEvent.change(input, { target: { files: [file] } });
+
+    await waitFor(() => {
+      expect(navigateMock).toHaveBeenCalledWith('/result', expect.anything());
+    });
+  });
+});
