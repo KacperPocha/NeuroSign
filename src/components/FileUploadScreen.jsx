@@ -1,39 +1,69 @@
+// src/components/FileUploadScreen.jsx
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import * as tf from '@tensorflow/tfjs';
+import styles from '../styles/FileUploadScreen.module.css';
 
 const FileUploadScreen = () => {
-  const [prediction, setPrediction] = useState(null);
+  const [loading, setLoading] = useState(false);
+  const [preview, setPreview] = useState(null);
+  const navigate = useNavigate();
 
   const handleFileUpload = async (e) => {
     const file = e.target.files[0];
     if (!file) return;
 
-    // Wczytaj model
-    const model = await tf.loadLayersModel('/model/model.json');
+    setLoading(true);
+    setPreview(URL.createObjectURL(file));
 
-    // Konwersja obrazu na tensor (załaduj z pliku)
-    const img = new Image();
-    const reader = new FileReader();
-    reader.onload = () => {
-      img.src = reader.result;
-      img.onload = () => {
-        const tensor = tf.browser
-          .fromPixels(img)
-          .resizeNearestNeighbor([224, 224]) // Dopasuj do Twojego modelu
-          .toFloat()
-          .expandDims();
-        const prediction = model.predict(tensor);
-        prediction.array().then((res) => setPrediction(res));
+    try {
+      // Wczytanie modelu (symulacja)
+      await tf.ready();
+      await new Promise((res) => setTimeout(res, 1000)); // symulacja ładowania modelu
+
+      // Symulacja danych z rozpoznania
+      const recognitionData = {
+        type: 'Znak drogowy',
+        description: 'STOP',
+        value: 'STOP',
+        confidence: 0.98,
+        timestamp: new Date().toISOString()
       };
-    };
-    reader.readAsDataURL(file);
+
+      // Opóźnienie by zasymulować przetwarzanie
+      setTimeout(() => {
+        navigate('/result', {
+          state: {
+            photo: URL.createObjectURL(file),
+            recognitionData
+          }
+        });
+      }, 1500);
+    } catch (err) {
+      console.error('Błąd ładowania modelu:', err);
+      setLoading(false);
+    }
   };
 
   return (
-    <div>
-      <h2>Wgraj obraz do rozpoznania</h2>
-      <input type="file" accept="image/*" onChange={handleFileUpload} />
-      {prediction && <pre>{JSON.stringify(prediction, null, 2)}</pre>}
+    <div className={styles.uploadContainer}>
+      <h2 className={styles.heading}>Wgraj obraz do rozpoznania</h2>
+
+      {!loading && (
+        <label htmlFor="fileInput" className={styles.customUpload}>
+          Wybierz obraz
+          <input
+            type="file"
+            id="fileInput"
+            accept="image/png, image/jpeg"
+            onChange={handleFileUpload}
+            className={styles.hiddenInput}
+          />
+        </label>
+      )}
+
+      {preview && <img src={preview} alt="Podgląd" className={styles.preview} />}
+      {loading && <p className={styles.loading}>Rozpoznawanie znaku...</p>}
     </div>
   );
 };
