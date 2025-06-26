@@ -44,6 +44,11 @@
 
 #### Mobile:
 
+## Uruchomienie:
+
+1. **npx expo install --fix**  
+2. **npx expo start -c**  
+
 
 
 ### 3️⃣ Konfiguracja środowiska (.env)
