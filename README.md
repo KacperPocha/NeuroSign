@@ -45,7 +45,7 @@
 #### Mobile:
 
 ## Uruchomienie:
-
+1. **npm install** 
 1. **npx expo install --fix**  
 2. **npx expo start -c**  
 
