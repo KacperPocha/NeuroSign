@@ -1,12 +1,82 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Image, ScrollView, Alert } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import * as ImagePicker from 'expo-image-picker';
+import * as FileSystem from 'expo-file-system';
+
+// Ścieżka do pliku historii
+const HISTORY_FILE_PATH = FileSystem.documentDirectory + 'scan_history.json';
 
 const HomeScreen = ({ navigation }) => {
   const [isScanning, setIsScanning] = useState(false);
   const [lastResult, setLastResult] = useState(null);
   const [selectedImage, setSelectedImage] = useState(null);
+  const [recentScans, setRecentScans] = useState([]);
+
+  useEffect(() => {
+    loadRecentScans();
+  }, []);
+
+  // Funkcja do ładowania ostatnich skanowań
+  const loadRecentScans = async () => {
+    try {
+      const fileInfo = await FileSystem.getInfoAsync(HISTORY_FILE_PATH);
+      
+      if (fileInfo.exists) {
+        const fileContent = await FileSystem.readAsStringAsync(HISTORY_FILE_PATH);
+        const historyData = JSON.parse(fileContent);
+        
+        // Pobierz 3 najnowsze skanowania
+        const recent = historyData
+          .sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime())
+          .slice(0, 3);
+        
+        setRecentScans(recent);
+        
+        // Ustaw ostatni wynik jako pierwszy z listy
+        if (recent.length > 0) {
+          setLastResult(recent[0]);
+        }
+      }
+    } catch (error) {
+      console.error('Błąd podczas ładowania ostatnich skanowań:', error);
+    }
+  };
+
+  // Funkcja do zapisywania nowego wyniku do historii
+  const saveToHistory = async (result) => {
+    try {
+      let historyData = [];
+      
+      // Sprawdź czy plik historii istnieje
+      const fileInfo = await FileSystem.getInfoAsync(HISTORY_FILE_PATH);
+      
+      if (fileInfo.exists) {
+        const fileContent = await FileSystem.readAsStringAsync(HISTORY_FILE_PATH);
+        historyData = JSON.parse(fileContent);
+      }
+      
+      // Dodaj nowy wynik na początek tablicy
+      historyData.unshift(result);
+      
+      // Ogranicz historię do 100 elementów (opcjonalnie)
+      if (historyData.length > 100) {
+        historyData = historyData.slice(0, 100);
+      }
+      
+      // Zapisz zaktualizowaną historię
+      await FileSystem.writeAsStringAsync(HISTORY_FILE_PATH, JSON.stringify(historyData, null, 2));
+      
+      console.log('Wynik zapisany do historii');
+      
+      // Odśwież listę ostatnich skanowań
+      await loadRecentScans();
+      
+    } catch (error) {
+      console.error('Błąd podczas zapisywania do historii:', error);
+      Alert.alert('Błąd', 'Nie udało się zapisać wyniku do historii.');
+    }
+  };
 
   // Funkcja wyboru zdjęcia z galerii
   const pickImageFromGallery = async () => {
@@ -34,7 +104,7 @@ const HomeScreen = ({ navigation }) => {
       if (!result.canceled) {
         setSelectedImage(result.assets[0].uri);
         // Po wybraniu zdjęcia wywołujemy symulację rozpoznawania
-        simulateSignRecognition(result.assets[0].uri);
+        await simulateSignRecognition(result.assets[0].uri);
       }
     } catch (error) {
       console.error('Błąd podczas wybierania zdjęcia:', error);
@@ -50,30 +120,85 @@ const HomeScreen = ({ navigation }) => {
   const simulateSignRecognition = async (imageUri = null) => {
     setIsScanning(true);
     
-    // Symulacja procesu rozpoznawania
-    await new Promise(resolve => setTimeout(resolve, 2000));
-    
-    const result = {
-      signType: 'STOP',
-      confidence: 0.95,
-      timestamp: new Date().toLocaleString('pl-PL'),
-      description: 'Znak drogowy STOP - obowiązek zatrzymania pojazdu',
-      color: '#e74c3c',
-      shape: 'ośmiokąt',
-      imageUri: imageUri
-    };
-    
-    setLastResult(result);
-    setIsScanning(false);
-    
-    Alert.alert(
-      'Rozpoznano znak!',
-      `Znak: ${result.signType}\nPewność: ${(result.confidence * 100).toFixed(1)}%\nOpis: ${result.description}`,
-      [{ text: 'OK' }]
-    );
+    try {
+      // Symulacja procesu rozpoznawania
+      await new Promise(resolve => setTimeout(resolve, 2000));
+      
+      // Różne przykładowe wyniki dla różnorodności
+      const possibleResults = [
+        {
+          signType: 'STOP',
+          description: 'Znak drogowy STOP - obowiązek zatrzymania pojazdu',
+          confidence: 0.95,
+          color: '#e74c3c',
+          shape: 'ośmiokąt',
+        },
+        {
+          signType: 'YIELD',
+          description: 'Znak ustąp pierwszeństwa przejazdu',
+          confidence: 0.89,
+          color: '#f39c12',
+          shape: 'trójkąt',
+        },
+        {
+          signType: 'SPEED_LIMIT_50',
+          description: 'Ograniczenie prędkości do 50 km/h',
+          confidence: 0.92,
+          color: '#e74c3c',
+          shape: 'koło',
+        },
+        {
+          signType: 'NO_ENTRY',
+          description: 'Zakaz wjazdu dla wszystkich pojazdów',
+          confidence: 0.87,
+          color: '#e74c3c',
+          shape: 'koło',
+        },
+        {
+          signType: 'PARKING',
+          description: 'Miejsce parkingowe',
+          confidence: 0.91,
+          color: '#3498db',
+          shape: 'prostokąt',
+        }
+      ];
+      
+      const randomResult = possibleResults[0];
+      
+      const result = {
+        id: Date.now().toString(), // Unikalny identyfikator
+        signType: randomResult.signType,
+        type: 'Znak drogowy', // Dodane dla kompatybilności
+        description: randomResult.description,
+        value: randomResult.signType, // Dodane dla kompatybilności
+        confidence: randomResult.confidence,
+        timestamp: new Date().toISOString(),
+        color: randomResult.color,
+        shape: randomResult.shape,
+        imageUri: imageUri,
+        photo: imageUri // Dodane dla kompatybilności z HistoryScreen
+      };
+      
+      setLastResult(result);
+      
+      // Zapisz wynik do historii
+      await saveToHistory(result);
+      
+      Alert.alert(
+        'Rozpoznano znak!',
+        `Znak: ${result.signType}\nPewność: ${(result.confidence * 100).toFixed(1)}%\nOpis: ${result.description}`,
+        [{ text: 'OK' }]
+      );
+      
+    } catch (error) {
+      console.error('Błąd podczas rozpoznawania:', error);
+      Alert.alert('Błąd', 'Wystąpił błąd podczas rozpoznawania znaku.');
+    } finally {
+      setIsScanning(false);
+    }
   };
 
-  // Prawdziwa funkcja rozpoznawania znaków (nieużywana w tym kodzie)
+  // Prawdziwa funkcja rozpoznawania znaków (template do implementacji)
   const realSignRecognition = async (imageUri) => {
     try {
       // Tutaj byłaby integracja z rzeczywistym API rozpoznawania obrazów
@@ -97,11 +222,16 @@ const HomeScreen = ({ navigation }) => {
       const result = await response.json();
       
       return {
+        id: Date.now().toString(),
         signType: result.signType,
-        confidence: result.confidence,
-        timestamp: new Date().toLocaleString('pl-PL'),
+        type: 'Znak drogowy',
         description: result.description,
+        value: result.signType,
+        confidence: result.confidence,
+        timestamp: new Date().toISOString(),
         boundingBox: result.boundingBox,
+        imageUri: imageUri,
+        photo: imageUri
       };
     } catch (error) {
       console.error('Błąd rozpoznawania znaku:', error);
@@ -110,8 +240,57 @@ const HomeScreen = ({ navigation }) => {
   };
 
   const handleScanPress = () => {
-    // Wywołujemy funkcję wyboru zdjęcia z galerii
     pickImageFromGallery();
+  };
+
+  // Funkcja do renderowania elementu historii
+  const renderRecentScanItem = (item, index) => {
+    const date = new Date(item.timestamp);
+    const formattedDate = date.toLocaleDateString('pl-PL');
+    const formattedTime = date.toLocaleTimeString('pl-PL', { 
+      hour: '2-digit', 
+      minute: '2-digit' 
+    });
+
+    return (
+      <TouchableOpacity 
+        key={item.id || index}
+        style={styles.historyItem}
+        onPress={() => navigation.navigate('History')}
+      >
+        <View style={[styles.historyIcon, { backgroundColor: item.color || '#3498db' }]}>
+          <Ionicons 
+            name={getIconForSignType(item.signType || item.type)} 
+            size={20} 
+            color="white" 
+          />
+        </View>
+        <View style={styles.historyItemContent}>
+          <Text style={styles.historyItemTitle}>
+            {item.signType || item.type || 'Nieznany znak'}
+          </Text>
+          <Text style={styles.historyItemTime}>
+            {formattedDate} o {formattedTime}
+          </Text>
+        </View>
+        <Text style={styles.historyItemConfidence}>
+          {(item.confidence * 100).toFixed(0)}%
+        </Text>
+      </TouchableOpacity>
+    );
+  };
+
+  // Funkcja pomocnicza do wyboru ikony na podstawie typu znaku
+  const getIconForSignType = (signType) => {
+    if (!signType) return 'help-outline';
+    
+    const type = signType.toLowerCase();
+    if (type.includes('stop')) return 'stop-outline';
+    if (type.includes('speed') || type.includes('limit')) return 'speedometer-outline';
+    if (type.includes('parking')) return 'car-outline';
+    if (type.includes('yield')) return 'triangle-outline';
+    if (type.includes('no') || type.includes('zakaz')) return 'ban-outline';
+    return 'warning-outline';
   };
 
   return (
@@ -166,7 +345,9 @@ const HomeScreen = ({ navigation }) => {
               </Text>
             </View>
             <Text style={styles.resultDescription}>{lastResult.description}</Text>
-            <Text style={styles.resultTimestamp}>{lastResult.timestamp}</Text>
+            <Text style={styles.resultTimestamp}>
+              {new Date(lastResult.timestamp).toLocaleString('pl-PL')}
+            </Text>
           </View>
         </View>
       )}
@@ -210,11 +391,11 @@ const HomeScreen = ({ navigation }) => {
           
           <View style={styles.featureItem}>
             <View style={styles.featureIconContainer}>
-              <Ionicons name="cloud-upload" size={24} color="#3498db" />
+              <Ionicons name="save" size={24} color="#3498db" />
             </View>
-            <Text style={styles.featureTitle}>Synchronizacja</Text>
+            <Text style={styles.featureTitle}>Automatyczny zapis</Text>
             <Text style={styles.featureDescription}>
-              Zapisywanie wyników w bazie danych
+              Zapisywanie wyników w lokalnym pliku JSON
             </Text>
           </View>
         </View>
@@ -229,16 +410,9 @@ const HomeScreen = ({ navigation }) => {
           </TouchableOpacity>
         </View>
         
-        {lastResult ? (
-          <View style={styles.historyItem}>
-            <Ionicons name="stop" size={24} color={lastResult.color} />
-            <View style={styles.historyItemContent}>
-              <Text style={styles.historyItemTitle}>{lastResult.signType}</Text>
-              <Text style={styles.historyItemTime}>{lastResult.timestamp}</Text>
-            </View>
-            <Text style={styles.historyItemConfidence}>
-              {(lastResult.confidence * 100).toFixed(0)}%
-            </Text>
+        {recentScans.length > 0 ? (
+          <View>
+            {recentScans.map((item, index) => renderRecentScanItem(item, index))}
           </View>
         ) : (
           <View style={styles.emptyHistoryContainer}>
@@ -249,6 +423,35 @@ const HomeScreen = ({ navigation }) => {
           </View>
         )}
       </View>
+
+      {/* Statystyki */}
+      {recentScans.length > 0 && (
+        <View style={styles.statsContainer}>
+          <Text style={styles.sectionTitle}>Statystyki</Text>
+          <View style={styles.statsRow}>
+            <View style={styles.statItem}>
+              <Text style={styles.statNumber}>{recentScans.length}</Text>
+              <Text style={styles.statLabel}>Ostatnie skanowania</Text>
+            </View>
+            <View style={styles.statItem}>
+              <Text style={styles.statNumber}>
+                {recentScans.length > 0 
+                  ? Math.round(recentScans.reduce((sum, item) => sum + item.confidence, 0) / recentScans.length * 100)
+                  : 0}%
+              </Text>
+              <Text style={styles.statLabel}>Średnia pewność</Text>
+            </View>
+            <View style={styles.statItem}>
+              <Text style={styles.statNumber}>
+                {recentScans.length > 0 
+                  ? new Date(recentScans[0].timestamp).toLocaleDateString('pl-PL')
+                  : '-'}
+              </Text>
+              <Text style={styles.statLabel}>Ostatnie skanowanie</Text>
+            </View>
+          </View>
+        </View>
+      )}
     </ScrollView>
   );
 };
@@ -415,7 +618,6 @@ const styles = StyleSheet.create({
     borderRadius: 15,
     marginHorizontal: 20,
     marginTop: 25,
-    marginBottom: 30,
     padding: 20,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
@@ -436,9 +638,16 @@ const styles = StyleSheet.create({
   historyItem: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingVertical: 10,
+    paddingVertical: 12,
     borderBottomWidth: 1,
     borderBottomColor: '#ecf0f1',
+  },
+  historyIcon: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   historyItemContent: {
     flex: 1,
@@ -470,6 +679,37 @@ const styles = StyleSheet.create({
     marginTop: 10,
     fontSize: 14,
     paddingHorizontal: 20,
+  },
+  statsContainer: {
+    backgroundColor: 'white',
+    borderRadius: 15,
+    marginHorizontal: 20,
+    marginTop: 25,
+    marginBottom: 30,
+    padding: 20,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
+  },
+  statsRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-around',
+  },
+  statItem: {
+    alignItems: 'center',
+  },
+  statNumber: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    color: '#3498db',
+  },
+  statLabel: {
+    fontSize: 12,
+    color: '#7f8c8d',
+    textAlign: 'center',
+    marginTop: 5,
   },
 });
 
