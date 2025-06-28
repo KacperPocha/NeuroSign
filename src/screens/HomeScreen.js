@@ -183,7 +183,7 @@ const HomeScreen = ({ navigation }) => {
         name: 'sign.jpg',
       });
 
-      const response = await fetch('https://your-api-endpoint.com/recognize-sign', {
+      const response = await fetch('https://RailwayHging0498394hduih-endpoint.com/recognize-sign', {
         method: 'POST',
         body: formData,
         headers: {
