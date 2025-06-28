@@ -116,12 +116,12 @@ const HomeScreen = ({ navigation }) => {
     }
   };
 
-  // Symulacyjna funkcja rozpoznawania znaków
+ 
   const simulateSignRecognition = async (imageUri = null) => {
     setIsScanning(true);
     
     try {
-      // Symulacja procesu rozpoznawania
+     
       await new Promise(resolve => setTimeout(resolve, 2000));
       
       // Różne przykładowe wyniki dla różnorodności
@@ -133,34 +133,6 @@ const HomeScreen = ({ navigation }) => {
           color: '#e74c3c',
           shape: 'ośmiokąt',
         },
-        {
-          signType: 'YIELD',
-          description: 'Znak ustąp pierwszeństwa przejazdu',
-          confidence: 0.89,
-          color: '#f39c12',
-          shape: 'trójkąt',
-        },
-        {
-          signType: 'SPEED_LIMIT_50',
-          description: 'Ograniczenie prędkości do 50 km/h',
-          confidence: 0.92,
-          color: '#e74c3c',
-          shape: 'koło',
-        },
-        {
-          signType: 'NO_ENTRY',
-          description: 'Zakaz wjazdu dla wszystkich pojazdów',
-          confidence: 0.87,
-          color: '#e74c3c',
-          shape: 'koło',
-        },
-        {
-          signType: 'PARKING',
-          description: 'Miejsce parkingowe',
-          confidence: 0.91,
-          color: '#3498db',
-          shape: 'prostokąt',
-        }
       ];
       
       const randomResult = possibleResults[0];
