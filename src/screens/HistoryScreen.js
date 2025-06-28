@@ -9,97 +9,147 @@ import {
   Alert
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import * as FileSystem from 'expo-file-system';
 
-// W rzeczywistej aplikacji pobieralibyśmy dane z lokalnej bazy danych
-// Tutaj używamy przykładowych danych
-const mockHistoryData = [
-  {
-    id: '1',
-    photo: 'https://via.placeholder.com/150',
-    type: 'Znak drogowy',
-    description: 'Ograniczenie prędkości',
-    value: '50',
-    confidence: 0.95,
-    timestamp: new Date(Date.now() - 3600000).toISOString(), // 1 godzina temu
-  },
-  {
-    id: '2',
-    photo: 'https://via.placeholder.com/150',
-    type: 'Znak drogowy',
-    description: 'Zakaz wjazdu',
-    value: 'B-1',
-    confidence: 0.88,
-    timestamp: new Date(Date.now() - 86400000).toISOString(), // 1 dzień temu
-  },
-  {
-    id: '3',
-    photo: 'https://via.placeholder.com/150',
-    type: 'Tablica rejestracyjna',
-    description: 'Polska',
-    value: 'WA12345',
-    confidence: 0.92,
-    timestamp: new Date(Date.now() - 172800000).toISOString(), // 2 dni temu
-  },
-];
+// Ścieżka do pliku historii
+const HISTORY_FILE_PATH = FileSystem.documentDirectory + 'scan_history.json';
 
 const HistoryScreen = ({ navigation }) => {
   const [historyData, setHistoryData] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    // Symulacja ładowania danych z bazy
-    const loadHistoryData = async () => {
-      try {
-        // Tutaj byłby kod do ładowania danych z AsyncStorage lub SQLite
-        setHistoryData(mockHistoryData);
-      } catch (error) {
-        console.error('Błąd podczas ładowania historii:', error);
-        Alert.alert('Błąd', 'Nie udało się załadować historii skanowań.');
-      } finally {
-        setIsLoading(false);
-      }
-    };
-    
     loadHistoryData();
   }, []);
+
+  // Funkcja do ładowania historii z pliku JSON
+  const loadHistoryData = async () => {
+    try {
+      setIsLoading(true);
+      
+      // Sprawdzenie czy plik istnieje
+      const fileInfo = await FileSystem.getInfoAsync(HISTORY_FILE_PATH);
+      
+      if (fileInfo.exists) {
+        // Odczytanie zawartości pliku
+        const fileContent = await FileSystem.readAsStringAsync(HISTORY_FILE_PATH);
+        const parsedData = JSON.parse(fileContent);
+        
+        // Sortowanie według czasu (najnowsze pierwsze)
+        const sortedData = parsedData.sort((a, b) => 
+          new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()
+        );
+        
+        setHistoryData(sortedData);
+        console.log('Historia załadowana z pliku:', sortedData.length, 'elementów');
+      } else {
+        // Jeśli plik nie istnieje, tworzymy pusty plik
+        await FileSystem.writeAsStringAsync(HISTORY_FILE_PATH, JSON.stringify([]));
+        setHistoryData([]);
+        console.log('Utworzono nowy plik historii');
+      }
+    } catch (error) {
+      console.error('Błąd podczas ładowania historii:', error);
+      Alert.alert(
+        'Błąd', 
+        'Nie udało się załadować historii skanowań. Sprawdź dostęp do plików.',
+        [{ text: 'OK' }]
+      );
+      setHistoryData([]);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // Funkcja do zapisywania historii do pliku JSON
+  const saveHistoryData = async (data) => {
+    try {
+      const jsonString = JSON.stringify(data, null, 2);
+      await FileSystem.writeAsStringAsync(HISTORY_FILE_PATH, jsonString);
+      console.log('Historia zapisana do pliku');
+    } catch (error) {
+      console.error('Błąd podczas zapisywania historii:', error);
+      Alert.alert(
+        'Błąd', 
+        'Nie udało się zapisać historii do pliku.',
+        [{ text: 'OK' }]
+      );
+    }
+  };
+
+  // Funkcja do usuwania pojedynczego elementu
+  const deleteHistoryItem = (itemId) => {
+    Alert.alert(
+      'Usuń element',
+      'Czy na pewno chcesz usunąć ten element z historii?',
+      [
+        { text: 'Anuluj', style: 'cancel' },
+        { 
+          text: 'Usuń', 
+          style: 'destructive',
+          onPress: async () => {
+            const updatedData = historyData.filter(item => item.id !== itemId);
+            setHistoryData(updatedData);
+            await saveHistoryData(updatedData);
+          } 
+        }
+      ]
+    );
+  };
 
   // Funkcja do renderowania elementu historii
   const renderHistoryItem = ({ item }) => {
     const date = new Date(item.timestamp);
-    const formattedDate = `${date.toLocaleDateString()} ${date.toLocaleTimeString()}`;
+    const formattedDate = `${date.toLocaleDateString('pl-PL')} ${date.toLocaleTimeString('pl-PL', { 
+      hour: '2-digit', 
+      minute: '2-digit' 
+    })}`;
     
     return (
       <TouchableOpacity 
         style={styles.historyItem}
         onPress={() => navigation.navigate('Result', {
-          photo: item.photo,
+          photo: item.photo || item.imageUri,
           recognitionData: {
-            type: item.type,
+            type: item.type || item.signType,
             description: item.description,
-            value: item.value,
+            value: item.value || item.signType,
             confidence: item.confidence,
             timestamp: item.timestamp
           }
         })}
       >
-        <Image 
-          source={{ uri: item.photo }} 
-          style={styles.itemImage} 
-          resizeMode="cover"
-        />
+        {(item.photo || item.imageUri) && (
+          <Image 
+            source={{ uri: item.photo || item.imageUri }} 
+            style={styles.itemImage} 
+            resizeMode="cover"
+          />
+        )}
         
         <View style={styles.itemDetails}>
           <View style={styles.itemHeader}>
             <View style={styles.typeTag}>
-              <Text style={styles.typeText}>{item.type}</Text>
+              <Text style={styles.typeText}>{item.type || item.signType || 'Nieznany'}</Text>
             </View>
-            <Text style={styles.confidenceText}>
-              {(item.confidence * 100).toFixed(0)}%
-            </Text>
+            <View style={styles.headerRight}>
+              <Text style={styles.confidenceText}>
+                {(item.confidence * 100).toFixed(0)}%
+              </Text>
+              <TouchableOpacity
+                style={styles.deleteButton}
+                onPress={() => deleteHistoryItem(item.id)}
+              >
+                <Ionicons name="trash-outline" size={16} color="#e74c3c" />
+              </TouchableOpacity>
+            </View>
           </View>
           
           <Text style={styles.descriptionText}>
-            {item.description}: <Text style={styles.valueText}>{item.value}</Text>
+            {item.description}
+            {item.value && item.value !== item.signType && (
+              <Text style={styles.valueText}> - {item.value}</Text>
+            )}
           </Text>
           
           <Text style={styles.timestampText}>
@@ -120,13 +170,36 @@ const HistoryScreen = ({ navigation }) => {
         { 
           text: 'Usuń', 
           style: 'destructive',
-          onPress: () => {
-            // Tutaj byłby kod do usuwania danych z bazy
+          onPress: async () => {
             setHistoryData([]);
+            await saveHistoryData([]);
           } 
         }
       ]
     );
+  };
+
+  // Funkcja do eksportowania historii
+  const exportHistory = async () => {
+    try {
+      const exportData = {
+        exportDate: new Date().toISOString(),
+        totalItems: historyData.length,
+        data: historyData
+      };
+      
+      const exportPath = FileSystem.documentDirectory + `history_export_${Date.now()}.json`;
+      await FileSystem.writeAsStringAsync(exportPath, JSON.stringify(exportData, null, 2));
+      
+      Alert.alert(
+        'Eksport zakończony',
+        `Historia została wyeksportowana do:\n${exportPath}`,
+        [{ text: 'OK' }]
+      );
+    } catch (error) {
+      console.error('Błąd podczas eksportu:', error);
+      Alert.alert('Błąd', 'Nie udało się wyeksportować historii.');
+    }
   };
 
   return (
@@ -135,15 +208,32 @@ const HistoryScreen = ({ navigation }) => {
       <View style={styles.header}>
         <Text style={styles.headerTitle}>Historia skanowań</Text>
         {historyData.length > 0 && (
-          <TouchableOpacity 
-            style={styles.clearButton}
-            onPress={clearHistory}
-          >
-            <Ionicons name="trash-outline" size={20} color="#e74c3c" />
-            <Text style={styles.clearButtonText}>Wyczyść</Text>
-          </TouchableOpacity>
+          <View style={styles.headerButtons}>
+            <TouchableOpacity 
+              style={styles.exportButton}
+              onPress={exportHistory}
+            >
+              <Ionicons name="download-outline" size={18} color="#3498db" />
+            </TouchableOpacity>
+            <TouchableOpacity 
+              style={styles.clearButton}
+              onPress={clearHistory}
+            >
+              <Ionicons name="trash-outline" size={18} color="#e74c3c" />
+              <Text style={styles.clearButtonText}>Wyczyść</Text>
+            </TouchableOpacity>
+          </View>
         )}
       </View>
+      
+      {/* Informacja o liczbie elementów */}
+      {historyData.length > 0 && (
+        <View style={styles.statsContainer}>
+          <Text style={styles.statsText}>
+            Łącznie: {historyData.length} {historyData.length === 1 ? 'skanowanie' : 'skanowań'}
+          </Text>
+        </View>
+      )}
       
       {/* Lista historii */}
       {isLoading ? (
@@ -175,6 +265,8 @@ const HistoryScreen = ({ navigation }) => {
           keyExtractor={item => item.id}
           contentContainerStyle={styles.listContainer}
           showsVerticalScrollIndicator={false}
+          refreshing={isLoading}
+          onRefresh={loadHistoryData}
         />
       )}
     </View>
@@ -201,6 +293,14 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     color: '#2c3e50',
   },
+  headerButtons: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  exportButton: {
+    marginRight: 15,
+    padding: 5,
+  },
   clearButton: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -209,6 +309,17 @@ const styles = StyleSheet.create({
     color: '#e74c3c',
     marginLeft: 5,
     fontSize: 14,
+  },
+  statsContainer: {
+    backgroundColor: 'white',
+    paddingHorizontal: 20,
+    paddingVertical: 10,
+    borderBottomWidth: 1,
+    borderBottomColor: '#eeeeee',
+  },
+  statsText: {
+    fontSize: 14,
+    color: '#7f8c8d',
   },
   centered: {
     flex: 1,
@@ -282,6 +393,10 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginBottom: 8,
   },
+  headerRight: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
   typeTag: {
     backgroundColor: '#3498db',
     paddingVertical: 4,
@@ -297,6 +412,10 @@ const styles = StyleSheet.create({
     fontSize: 12,
     color: '#27ae60',
     fontWeight: 'bold',
+    marginRight: 10,
+  },
+  deleteButton: {
+    padding: 2,
   },
   descriptionText: {
     fontSize: 14,
