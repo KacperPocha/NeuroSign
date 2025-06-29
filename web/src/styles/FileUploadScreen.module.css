@@ -1,0 +1,83 @@
+.uploadContainer {
+  background: white;
+  border-radius: 10px;
+  padding: 20px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  text-align: center;
+}
+
+.uploadInput {
+  margin-top: 10px;
+}
+
+.uploadContainer {
+  color: #2c3e50; 
+  background-color: #fff;
+  padding: 20px;
+  border-radius: 10px;
+}
+
+.heading {
+  color: #2c3e50;
+  font-size: 1.5rem;
+  margin-bottom: 20px;
+}
+
+
+.uploadButton {
+  background-color: #3498db;
+  color: white;
+  padding: 10px 15px;
+  border: none;
+  border-radius: 6px;
+  margin-top: 10px;
+  cursor: pointer;
+}
+
+.fileInputWrapper {
+  display: inline-block;
+  position: relative;
+}
+
+.hiddenInput {
+  display: none;
+}
+
+.uploadLabel {
+  background-color: #3498db;
+  color: white;
+  padding: 12px 20px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: bold;
+  transition: background-color 0.3s ease;
+  display: inline-block;
+}
+
+.uploadLabel:hover {
+  background-color: #2980b9;
+}
+
+
+.customUpload {
+  display: inline-block;
+  padding: 12px 24px;
+  background-color: #3498db;
+  color: white;
+  font-weight: bold;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background-color 0.3s;
+  font-size: 16px;
+  margin-top: 20px;
+  text-align: center;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+}
+
+.customUpload:hover {
+  background-color: #2980b9;
+}
+
+.hiddenInput {
+  display: none;
+}
