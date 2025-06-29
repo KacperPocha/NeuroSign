@@ -44,11 +44,6 @@ function MainTabs() {
         options={{ title: 'Strona główna' }}
       />
       <Tab.Screen 
-        name="Camera" 
-        component={CameraScreen} 
-        options={{ title: 'Skaner' }}
-      />
-      <Tab.Screen 
         name="History" 
         component={HistoryScreen} 
         options={{ title: 'Historia' }}
