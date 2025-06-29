@@ -45,6 +45,8 @@
 
  **Po wpisaniu powyższych komend powinien pojawić się kod qr** 
 
+ **Ważne dla wersji android trzeba pobrać aplikację expo go ora być w tej samej sieci** 
+
 
 
 
