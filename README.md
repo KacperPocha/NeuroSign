@@ -32,18 +32,6 @@
 - **Tesseract.js** – OCR do odczytywania tekstu 🔤
 - **OpenCV.js** – przetwarzanie obrazu 🎥
 
-## 📦 Instalacja i uruchomienie
-
-### 1️⃣ Klonowanie repozytorium
-
-
-### 2️⃣ Instalacja zależności
-
-#### Web:
-
-
-#### Mobile:
-
 
 
 ### 3️⃣ Konfiguracja środowiska (.env)
