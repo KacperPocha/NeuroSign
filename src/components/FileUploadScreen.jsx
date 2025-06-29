@@ -17,11 +17,11 @@ const FileUploadScreen = () => {
     setPreview(URL.createObjectURL(file));
 
     try {
-      // Wczytanie modelu (symulacja)
+     
       await tf.ready();
       await new Promise((res) => setTimeout(res, 1000)); // symulacja ładowania modelu
 
-      // Symulacja danych z rozpoznania
+      
       const recognitionData = {
         type: 'Znak drogowy',
         description: 'STOP',
