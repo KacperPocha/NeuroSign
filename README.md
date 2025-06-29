@@ -38,9 +38,12 @@
 #### Mobile:
 
 ## Uruchomienie:
+**Przed uruchominiem wymagana jest instalacja środowiska expo instalacja dostepna jest pod tym linkiem : https://docs.expo.dev/**
 1. **npm install** 
-1. **npx expo install --fix**  
-2. **npx expo start -c**  
+2. **npx expo install --fix**  
+3. **npx expo start -c**
+
+ **Po wpisaniu powyższych komend powinien pojawić się kod qr** 
 
 
 
