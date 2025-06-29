@@ -7,12 +7,14 @@ import HistoryScreen from './components/HistoryScreen';
 import ResultScreen from './components/ResultScreen';
 import SettingsScreen from './components/SettingsScreen';
 import FileUploadScreen from './components/FileUploadScreen';
+import { ThemeProvider } from './context/ThemeContext';
 import './App.css';
 
 export default function App() {
   const [resultData, setResultData] = useState(null);
 
   return (
+    <ThemeProvider>
     <Router>
       <div className="app-container">
         <header
@@ -41,9 +43,7 @@ export default function App() {
             NeuroSign
           </Link>
           <nav className="app-nav" style={{ display: 'flex', gap: '15px' }}>
-            <Link to="/camera" className="nav-link" style={{ color: 'white', textDecoration: 'none' }}>
-              Skanuj
-            </Link>
+           
             <Link to="/upload" className="nav-link" style={{ color: 'white', textDecoration: 'none' }}>
               Wgraj
             </Link>
@@ -72,5 +72,6 @@ export default function App() {
         </footer>
       </div>
     </Router>
+    </ThemeProvider>
   );
 }
