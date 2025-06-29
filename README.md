@@ -23,20 +23,6 @@
 - **TensorFlow\.js** – sieć neuronowa do klasyfikacji znaków 🧠
 - **OpenCV.js** – przetwarzanie obrazu 🎥
 
-## 📦 Instalacja i uruchomienie
-
-
-### 1️⃣ Klonowanie repozytorium
-
-
-
-### 2️⃣ Instalacja zależności
-
-#### Web:
-
-
-#### Mobile:
-
 ## Uruchomienie:
 **Przed uruchominiem wymagana jest instalacja środowiska expo instalacja dostepna jest pod tym linkiem : https://docs.expo.dev/**
 1. **npm install** 
