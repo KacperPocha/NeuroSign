@@ -1,6 +1,7 @@
 import React, { useRef, useState } from 'react';
 import Webcam from 'react-webcam';
 import '../styles/CameraScreen.module.css'; // Assuming you have a CSS file for styling
+import styles from '../styles/Buttons.module.css';
 
 const CameraScreen = ({ onCapture }) => {
   const webcamRef = useRef(null);
@@ -35,7 +36,7 @@ const CameraScreen = ({ onCapture }) => {
         width="100%"
         style={{ maxWidth: 640 }}
       />
-      <button onClick={capture} disabled={isCapturing}>
+      <button onClick={capture} disabled={isCapturing} className={styles.buttonSecondary}>
         {isCapturing ? 'Przetwarzanie...' : 'Zrób zdjęcie'}
       </button>
     </div>
