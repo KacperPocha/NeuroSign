@@ -45,6 +45,9 @@
 
  **Po wpisaniu powyższych komend powinien pojawić się kod qr** 
 
+ ![image](https://github.com/user-attachments/assets/7719dac3-1776-4e18-94b7-2da672c7199d)
+
+
 
 
 ### 3️⃣ Konfiguracja środowiska (.env)
