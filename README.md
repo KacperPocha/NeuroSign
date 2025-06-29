@@ -9,9 +9,7 @@
 ✅ Rozpoznawanie znaków z obrazu kamery 📷\
 ✅ Obsługa zarówno aplikacji webowej, jak i mobilnej 🌍📱\
 ✅ Wykorzystanie sieci neuronowych (TensorFlow\.js) 🧠\
-✅ OCR do odczytywania znaków tekstowych (Tesseract.js) 🔠\
 ✅ Historia rozpoznanych znaków 📜\
-✅ Przechowywanie wyników w bazie danych ☁️
 
 ## 🛠️ Technologie
 
@@ -19,31 +17,34 @@
 
 - **React.js** – dla wersji webowej 🌐
 - **React Native (Expo)** – dla wersji mobilnej 📱
-- **Tailwind CSS / ShadCN** – UI i stylizacja 🎨
-
-### Backend:
-
-- **Node.js + Express.js** – API do przetwarzania danych 🖥️
-- **Firebase / Supabase** – baza danych i autoryzacja 🔐
 
 ### AI / OCR:
 
 - **TensorFlow\.js** – sieć neuronowa do klasyfikacji znaków 🧠
-- **Tesseract.js** – OCR do odczytywania tekstu 🔤
 - **OpenCV.js** – przetwarzanie obrazu 🎥
 
+## Uruchomienie:
+**Przed uruchominiem wymagana jest instalacja środowiska expo instalacja dostepna jest pod tym linkiem : https://docs.expo.dev/**
+1. **npm install** 
+2. **npx expo install --fix**  
+3. **npx expo start -c**
 
+ **Po wpisaniu powyższych komend powinien pojawić się kod qr** 
+
+ **Ważne dla wersji android trzeba pobrać aplikację expo go ora być w tej samej sieci** 
 
 ### 3️⃣ Konfiguracja środowiska (.env)
-
+1. **Utwórz wirtualne środowisko python -m venv myVenv**
+2. **Aktywuj środwisko .\myVenv\Scripts\Activate**
+3. **Zainstaluj biblioteki pip install -r requirements.txt**
 
 
 ## 📸 Jak działa?
 
 1️⃣ Użytkownik otwiera aplikację i pozwala na dostęp do kamery.\
 2️⃣ Aplikacja przechwytuje obraz i przetwarza go w czasie rzeczywistym.\
-3️⃣ AI klasyfikuje znak lub OCR odczytuje tekst.\
-4️⃣ Wynik jest wyświetlany na ekranie i może być zapisany w bazie.
+3️⃣ AI klasyfikuje znak\
+4️⃣ Wynik jest wyświetlany na ekranie i zapisywany w historii.
 
 **Wymagania funkcjonalne**  
 
@@ -61,10 +62,6 @@
    - Zapis historii detekcji w bazie danych. 
    - Możliwość przeglądania historii.
 
-5. **Autoryzacja i zarządzanie użytkownikami**  
-   - Możliwość logowania i rejestracji użytkowników.
-   - 
-
 **Wymagania niefunkcjonalne**  
 
 1. **Wydajność**  
@@ -74,25 +71,21 @@
 2. **Skalowalność**  
    - Backend z możliwością rozszerzenia.   
 
-3. **Bezpieczeństwo**  
-   - Bezpieczna autoryzacja użytkowników.  
-   - Zabezpieczenie przed nieautoryzowanym dostępem do historii detekcji.  
-
-4. **Dostępność**  
+3. **Dostępność**  
    - Aplikacja powinna działać na różnych urządzeniach (telefony, tablety, komputery).  
    - Obsługa różnych systemów operacyjnych (Android, iOS, Windows, macOS).  
 
-5. **Łatwość użytkowania**  
+4. **Łatwość użytkowania**  
    - Intuicyjny interfejs, prosty onboarding dla nowych użytkowników.   
 
-6. **Rozszerzalność**  
+5. **Rozszerzalność**  
    - Modułowa architektura umożliwiająca dodawanie nowych funkcji.  
    - Możliwość dodania kolejnych modeli AI bez modyfikacji całej aplikacji.
   
 **Testy integracyjne dla NeuroSign**  
 
  **1. Test integracji: Rozpoznawanie znaków z kamery**
-📌 **Cel:** Sprawdzenie, czy obraz z kamery jest poprawnie przetwarzany przez model AI i OCR oraz wyświetlany w interfejsie użytkownika.  
+📌 **Cel:** Sprawdzenie, czy obraz z kamery jest poprawnie przetwarzany przez model AI oraz wyświetlany w interfejsie użytkownika.  
 🛠 **Moduły:**  
 - Frontend (React.js / React Native)  
 - TensorFlow.js (model AI)  
@@ -112,43 +105,18 @@
 
 ---
 
-**2. Test integracji: Zapisywanie historii rozpoznań (frontend + backend + baza danych)**  
-📌 **Cel:** Sprawdzenie, czy dane o rozpoznanych znakach są poprawnie zapisywane i pobierane z bazy.  
+**2. Test integracji: Zapisywanie historii rozpoznań**  
+📌 **Cel:** Sprawdzenie, czy dane o rozpoznanych znakach są poprawnie zapisywane w historii.  
 🛠 **Moduły:**  
-- Frontend (React.js / React Native)  
-- Backend (Node.js + Express.js)  
-- Baza danych (Firebase / Supabase)  
+- Frontend (React.js / React Native)
 
 ✅ **Kroki testowe:**  
 1. Przeprowadź detekcję znaku w aplikacji.  
-2. Sprawdź, czy aplikacja wysyła żądanie POST do API backendu.  
-3. Sprawdź, czy backend poprawnie zapisuje dane w bazie.  
-4. Odśwież aplikację i sprawdź, czy historia detekcji została poprawnie pobrana.  
+2. Sprawdź, czy backend poprawnie zapisuje dane w historii.  
+3. Odśwież aplikację i sprawdź, czy historia detekcji została poprawnie pobrana.  
 
 🛑 **Możliwe błędy:**  
-- Dane nie zapisują się w bazie.  
-- Historia nie jest pobierana z backendu.  
-- Backend zwraca błędy (np. 500 Internal Server Error).  
-
-
-**3. Test integracji: Pobieranie i analiza statystyk (backend + frontend + baza danych)**  
-📌 **Cel:** Sprawdzenie, czy aplikacja poprawnie pobiera i wyświetla statystyki dotyczące rozpoznanych znaków.  
-🛠 **Moduły:**  
-- Frontend (dashboard statystyk)  
-- Backend (API statystyk)  
-- Baza danych
-
-✅ **Kroki testowe:**  
-1. Otwórz aplikację i przejdź do sekcji „Statystyki”.  
-2. Sprawdź, czy aplikacja wysyła żądanie GET do API backendu.  
-3. Upewnij się, że backend poprawnie agreguje dane z bazy.  
-4. Sprawdź, czy frontend poprawnie wyświetla statystyki (np. liczba wykryć danego znaku).  
-
-🛑 **Możliwe błędy:**  
-- Baza danych nie zwraca poprawnych danych.  
-- Frontend nie aktualizuje statystyk w czasie rzeczywistym.  
-- API zwraca błędy (np. 404 Not Found).  
-
+- Dane nie zapisują się w historii.  
 
 
 ## 🎯 Przyszłe usprawnienia
@@ -169,4 +137,3 @@ Projekt udostępniany na licencji **MIT**. Możesz swobodnie go rozwijać i mody
 ---
 
 💡 Masz pomysł na usprawnienie? **Otwórz issue** lub **stwórz pull request**! 🚀
-
